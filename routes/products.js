@@ -145,6 +145,34 @@ router.put("/update/:id", upload.single("image"), async (req, res) => {
 })
 
 
+router.delete("/delete/:id", async (req, res) => {
+
+    try {
+
+        const productId = req.params.id;
+        const deletedProduct = await Product.findByIdAndDelete(productId);
+
+
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+
+        res.status(200).json({
+            message: 'Product deleted successfully',
+            product: deletedProduct,
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+
+
+
+})
+
+
+
 
 export default router;
 
