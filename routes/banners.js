@@ -106,6 +106,23 @@ router.put('/update/:id', upload.single('image'), async (req, res) => {
     }
 });
 
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const bannerId = req.params.id;
+        const deletedBanner = await Banner.findByIdAndDelete(bannerId);
+
+        if (!deletedBanner) {
+            return res.status(404).json({ message: 'Banner not found' });
+        }
+
+        res.status(200).json({
+            message: 'Banner deleted successfully',
+            banner: deletedBanner,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 
 
