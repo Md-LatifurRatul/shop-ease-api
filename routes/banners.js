@@ -66,6 +66,49 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+
+router.put('/update/:id', upload.single('image'), async (req, res) => {
+    try {
+        const { title } = req.body;
+        const bannerId = req.params.id;
+
+
+        const existingBanner = await Banner.findById(bannerId);
+        if (!existingBanner) {
+            return res.status(404).json({ message: 'Banner not found' });
+        }
+
+
+        const updateData = {};
+        if (title) updateData.title = title;
+
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.buffer, {
+                folder: "shop_ease/banners",
+            });
+            updateData.imageUrl = result.secure_url;
+        }
+
+
+        const updatedBanner = await Banner.findByIdAndUpdate(
+            bannerId,
+            updateData,
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            message: 'Banner updated successfully',
+            banner: updatedBanner,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
+
 export default router;
 
 
