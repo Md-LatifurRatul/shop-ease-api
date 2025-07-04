@@ -85,6 +85,67 @@ router.get("/:id", async (req, res) => {
 
 });
 
+
+
+router.put("/update/:id", upload.single("image"), async (req, res) => {
+
+
+    try {
+
+        const { name, price, rating, description } = req.body;
+        const productId = req.params.id;
+
+
+        const existingProduct = await Product.findById(productId);
+
+        if (!existingProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+
+
+        const updateData = {
+
+            name: name || existingProduct.name,
+            price: price || existingProduct.price,
+            rating: rating || existingProduct.rating,
+            description: description || existingProduct.description,
+
+
+        };
+
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.buffer, {
+
+                folder: "shop_ease/products"
+
+            });
+            updateData.imageUrl = result.secure_url;
+        }
+
+
+
+        const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, { new: true, runValidators: true });
+
+        res.status(200).json({
+            message: 'Product updated successfully',
+            product: updatedProduct,
+        });
+
+
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+
+
+    }
+
+
+})
+
+
+
 export default router;
 
 
