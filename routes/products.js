@@ -9,6 +9,21 @@ const router = express.Router();
 
 
 
+function streamUpload(buffer) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: "shop_ease/products" },
+            (error, result) => {
+                if (result) resolve(result);
+                else reject(error);
+            }
+        );
+        streamifier.createReadStream(buffer).pipe(stream);
+    });
+};
+
+
+
 router.post("/add", upload.single("image"), async (req, res) => {
 
 
@@ -21,21 +36,6 @@ router.post("/add", upload.single("image"), async (req, res) => {
             return res.status(400).json({ message: "Please upload an image" });
 
         }
-
-
-        const streamUpload = (buffer) => {
-            return new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream(
-                    { folder: "shop_ease/products" },
-                    (error, result) => {
-                        if (result) resolve(result);
-                        else reject(error);
-                    }
-                );
-                streamifier.createReadStream(buffer).pipe(stream);
-            });
-        };
-
 
         const result = await streamUpload(req.file.buffer);
 
@@ -130,11 +130,8 @@ router.put("/update/:id", upload.single("image"), async (req, res) => {
 
 
         if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.buffer, {
 
-                folder: "shop_ease/products"
-
-            });
+            const result = await streamUpload(req.file.buffer);
             updateData.imageUrl = result.secure_url;
         }
 
