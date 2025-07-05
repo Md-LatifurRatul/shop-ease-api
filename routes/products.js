@@ -1,9 +1,11 @@
 
 import express from "express";
+import streamifier from 'streamifier';
 import cloudinary from "../config/cloudinary.js";
 import Product from "../models/product.js";
 import upload from "../multer.js";
 const router = express.Router();
+
 
 
 
@@ -21,9 +23,21 @@ router.post("/add", upload.single("image"), async (req, res) => {
         }
 
 
-        const result = await cloudinary.uploader.upload(file.buffer, {
-            folder: "shop_ease/products"
-        })
+        const streamUpload = (buffer) => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: "shop_ease/products" },
+                    (error, result) => {
+                        if (result) resolve(result);
+                        else reject(error);
+                    }
+                );
+                streamifier.createReadStream(buffer).pipe(stream);
+            });
+        };
+
+
+        const result = await streamUpload(req.file.buffer);
 
         const newProduct = new Product({
             name,

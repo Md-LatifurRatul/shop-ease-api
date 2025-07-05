@@ -1,6 +1,6 @@
 import cors from "cors";
-import 'dotenv';
 import { configDotenv } from "dotenv";
+import 'dotenv/config.js';
 import express from "express";
 import connectDB from "./config/db.js";
 import bannerRoutes from './routes/banners.js';

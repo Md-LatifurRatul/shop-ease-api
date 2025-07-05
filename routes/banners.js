@@ -1,4 +1,5 @@
 import express from "express";
+import streamifier from 'streamifier';
 import cloudinary from "../config/cloudinary.js";
 import Banner from "../models/banner.js";
 import upload from "../multer.js";
@@ -16,11 +17,35 @@ router.post("/add", upload.single("image"), async (req, res) => {
             return res.status(400).json({ message: 'Please upload an image.' });
 
         }
+        const streamUpload = (buffer) => {
+            return new Promise((resolve, reject) => {
 
-        const result = await cloudinary.uploader.upload(file.buffer, {
-            folder: "shop_ease/banners",
-        });
+                const stream = cloudinary.uploader.upload_stream(
 
+                    { folder: "shop_ease/banners" },
+                    (error, result) => {
+                        if (result) {
+                            resolve(result);
+                        }
+                        else {
+                            reject(error);
+                        }
+                    }
+
+                );
+
+                streamifier.createReadStream(buffer).pipe(stream);
+
+
+            });
+
+
+
+        };
+
+
+
+        const result = await streamUpload(file.buffer);
 
         const newBanner = new Banner({
             title,
@@ -28,7 +53,7 @@ router.post("/add", upload.single("image"), async (req, res) => {
         });
 
         await newBanner.save();
-        res.status.json({
+        res.status(201).json({
             message: 'Banner added successfully',
             banner: newBanner,
         });
